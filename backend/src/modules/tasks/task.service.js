@@ -1,15 +1,18 @@
 const prisma = require("../../config/prisma");
 const ApiError = require("../../utils/apiError");
+const { emitTaskEvent } = require("./task.events");
 
 const isAdmin = (user) => user.role === "ADMIN";
 
 const create = async (user, data) => {
-  return prisma.task.create({
+  const task = await prisma.task.create({
     data: { ...data, ownerId: user.id },
+    include: { owner: { select: { id: true, name: true, email: true } } },
   });
+  emitTaskEvent("task:created", task);
+  return task;
 };
 
-// Fetch a task and enforce that the requester is allowed to see it
 const getById = async (user, id) => {
   const task = await prisma.task.findUnique({
     where: { id },
@@ -20,7 +23,6 @@ const getById = async (user, id) => {
     throw new ApiError(404, "Task not found");
   }
 
-  // Users may only access their own tasks; admins may access any
   if (!isAdmin(user) && task.ownerId !== user.id) {
     throw new ApiError(403, "You do not have permission to access this task");
   }
@@ -31,7 +33,6 @@ const getById = async (user, id) => {
 const list = async (user, { page, limit, status, ownerId }) => {
   const where = {};
 
-  // Non-admins are locked to their own tasks, regardless of filters
   if (isAdmin(user)) {
     if (ownerId) where.ownerId = ownerId;
   } else {
@@ -42,7 +43,6 @@ const list = async (user, { page, limit, status, ownerId }) => {
 
   const skip = (page - 1) * limit;
 
-  // Run count + page query together for efficiency
   const [items, total] = await Promise.all([
     prisma.task.findMany({
       where,
@@ -66,14 +66,20 @@ const list = async (user, { page, limit, status, ownerId }) => {
 };
 
 const update = async (user, id, data) => {
-  // Reuse getById so the same permission check applies
   await getById(user, id);
-  return prisma.task.update({ where: { id }, data });
+  const task = await prisma.task.update({
+    where: { id },
+    data,
+    include: { owner: { select: { id: true, name: true, email: true } } },
+  });
+  emitTaskEvent("task:updated", task);
+  return task;
 };
 
 const remove = async (user, id) => {
-  await getById(user, id);
+  const task = await getById(user, id);
   await prisma.task.delete({ where: { id } });
+  emitTaskEvent("task:deleted", task);
 };
 
 module.exports = { create, getById, list, update, remove };
