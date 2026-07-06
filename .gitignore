@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+
+# Prisma
+# (keep migrations! only ignore generated client if it's in-repo)
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
