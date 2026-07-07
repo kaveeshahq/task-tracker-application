@@ -5,7 +5,6 @@ const { signToken } = require("../../utils/jwt");
 
 const SALT_ROUNDS = 10;
 
-// Strip password before returning a user to the caller
 const sanitize = (user) => {
   const { password, ...safe } = user;
   return safe;

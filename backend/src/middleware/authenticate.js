@@ -19,7 +19,6 @@ const authenticate = asyncHandler(async (req, res, next) => {
     throw new ApiError(401, "Invalid or expired token");
   }
 
-  // Confirm the user still exists (e.g. not deleted after token issued)
   const user = await prisma.user.findUnique({
     where: { id: payload.userId },
     select: { id: true, email: true, name: true, role: true },

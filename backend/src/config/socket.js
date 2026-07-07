@@ -9,7 +9,6 @@ const initSocket = (httpServer) => {
     cors: { origin: env.clientOrigin, credentials: true },
   });
 
-  // Authenticate every socket connection using the JWT
   io.use((socket, next) => {
     const token = socket.handshake.auth?.token;
     if (!token) {
@@ -25,16 +24,13 @@ const initSocket = (httpServer) => {
   });
 
   io.on("connection", (socket) => {
-    // Each user joins a private room keyed by their own id
     socket.join(`user:${socket.user.id}`);
 
-    // Admins additionally join a shared room to receive all task events
     if (socket.user.role === "ADMIN") {
       socket.join("admins");
     }
 
     socket.on("disconnect", () => {
-      // Rooms are cleaned up automatically on disconnect
     });
   });
 

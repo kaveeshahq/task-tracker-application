@@ -3,10 +3,8 @@ const app = require("./app");
 const env = require("./config/env");
 const { initSocket } = require("./config/socket");
 
-// Wrap the Express app in a raw HTTP server so Socket.IO can share the port
 const server = http.createServer(app);
 
-// Initialize Socket.IO on the same server
 initSocket(server);
 
 server.listen(env.port, () => {

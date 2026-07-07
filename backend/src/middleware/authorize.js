@@ -1,6 +1,5 @@
 const ApiError = require("../utils/apiError");
 
-// Usage: authorize("ADMIN") or authorize("USER", "ADMIN")
 const authorize = (...allowedRoles) => (req, res, next) => {
   if (!req.user) {
     throw new ApiError(401, "Authentication required");
